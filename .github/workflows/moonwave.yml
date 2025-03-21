@@ -1,0 +1,39 @@
+name: Deploy Documentation
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Moonwave
+        run: npm install -g moonwave
+
+      - name: Removing F3X src
+        run: rm -rf MainModule/DefaultCommands/Administration/F3X
+
+      - name: Publish Documentation
+        run: |
+          git remote set-url origin https://git:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
+          git config --global user.email "support+actions@github.com"
+          git config --global user.name "github-actions-bot"
+          moonwave build --publish --code MainModule/
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
